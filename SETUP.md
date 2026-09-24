@@ -20,18 +20,19 @@ Create a **Neon Postgres** database through Vercel Marketplace/Storage or neon.c
 | Name | Value |
 | --- | --- |
 | `DATABASE_URL` | Your Neon Postgres connection string |
-| `APP_PASSWORD` | A unique random password of at least 16 characters |
-| `CRON_SECRET` | A different random secret of at least 16 characters |
+| `CRON_SECRET` | A random secret of at least 16 characters |
 | `RESEND_API_KEY` | A sending API key from your Resend account |
 | `EMAIL_FROM` | `JobScout <jobs@your-verified-domain.com>`; use a sender verified in Resend |
 
 Add production values to the **Production** environment. Redeploy after changing them. Do not paste API keys into the app, a GitHub file, or chat. Resend’s testing sender may be restricted to your account email; use a verified domain for normal delivery.
 
-The app fails closed until `APP_PASSWORD` is configured. On first visit, your browser asks for **username `ami`** and your chosen password. This protects the personal app and its API. The cron endpoint uses its separate secret.
+The app opens without a username or password. Anyone with its URL can view and change its shared preferences, recipient email and saved jobs. The background cron endpoint still requires `CRON_SECRET`; this is a server setting, not a login.
+
+If updating an earlier version, replace `proxy.ts` and `lib/server.ts` with the files in this ZIP, commit, and redeploy. You may remove the unused `APP_PASSWORD` variable from Vercel.
 
 ## 5. Deploy and enable emails
 
-1. Deploy, then open the Vercel production URL and sign in.
+1. Deploy, then open the Vercel production URL — no sign-in is required.
 2. Set your job titles, location, salary and date filters. Select **Apply preferences**.
 3. In **Daily digest**, enter your recipient email and save.
 4. Select **Preview next digest**, then **Send now** to test delivery with real matches. No email is sent when there are no new matches.
