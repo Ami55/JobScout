@@ -11,11 +11,10 @@ export async function sendDigest(force=false){
  const day=new Date().toISOString().slice(0,10),key='digest-'+day,sql=await db();
  let delivery=await read<Delivery|null>(key,null);
  if(!delivery){
-  const {jobs,warnings}=await digestPreview();
-  if(warnings.length)throw Error('A job source is unavailable. Try again later.');
+  const {jobs}=await digestPreview();
   if(!jobs.length){await write('lastDigest',{at:new Date().toISOString(),count:0,status:'No new matches'});return {skipped:'No new matches to email'};}
   const chosen=jobs.slice(0,50);
-  const html='<div style="font-family:Arial,sans-serif;max-width:640px;margin:auto;color:#151b2c"><h1 style="color:#5237ff">Your JobScout shortlist</h1><p>'+chosen.length+' new matches for your next chapter.</p>'+chosen.map((j:Job)=>'<div style="border-bottom:1px solid #dfe4ef;padding:20px 0"><h2 style="font-size:20px">'+esc(j.title)+'</h2><p>'+esc(j.company)+' · '+esc(j.location)+'</p><p>'+esc(j.salary||'Salary not disclosed')+'</p><a href="'+esc(j.url)+'">View job on '+esc(j.source)+'</a></div>').join('')+'<p>Remotive listings are delayed by 24 hours. Check eligibility and salary on the original listing. Pause emails in JobScout’s Daily digest settings.</p></div>';
+  const html='<div style="font-family:Arial,sans-serif;max-width:640px;margin:auto;color:#151b2c"><h1 style="color:#5237ff">Your JobScout shortlist</h1><p>'+chosen.length+' new matches for your next chapter.</p>'+chosen.map((j:Job)=>'<div style="border-bottom:1px solid #dfe4ef;padding:20px 0"><h2 style="font-size:20px">'+esc(j.title)+'</h2><p>'+esc(j.company)+' · '+esc(j.location)+'</p><p>'+esc(j.salary||'Salary not disclosed')+'</p><a href="'+esc(j.url)+'">View job on '+esc(j.source)+'</a></div>').join('')+'<p>Listings retrieved via JSearch; coverage varies by publisher. Check eligibility and salary on the original listing. Pause emails in JobScout’s Daily digest settings.</p></div>';
   delivery={status:'pending',lease:0,ids:chosen.map(j=>j.id),payload:{from:r.EMAIL_FROM,to:[p.email],subject:'JobScout: '+chosen.length+' new job matches',html}};
   await sql`INSERT INTO records(key,value) VALUES(${key},${JSON.stringify(delivery)}) ON CONFLICT(key) DO NOTHING`;
  }

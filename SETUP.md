@@ -1,8 +1,17 @@
 # Publish JobScout on GitHub and Vercel
 
+## Updating an existing deployment
+
+1. Upload all files from this ZIP to the existing GitHub repository root, replacing matching files.
+2. Keep your existing database and email environment variables.
+3. Add `JSEARCH_API_KEY` in Vercel Production (and Preview if used). For an OpenWeb Ninja key, leave `JSEARCH_PROVIDER` unset or set it to `openwebninja`. For a RapidAPI key, set it to `rapidapi`.
+4. Redeploy after the code and environment changes. Open the **Vercel URL**, not the separate ChatGPT Site.
+5. Set title `SEO`, location `Canada`, published within `30 days`, include undisclosed pay, and click **Apply preferences**.
+6. The source line must now say **JSearch**. If it still says Remotive/Arbeitnow, you are viewing an older deployment. A key/access/quota error will explain the next step.
+
 ## 1. Upload the project to GitHub
 
-1. Unzip `ami-job-scout-vercel.zip`.
+1. Unzip `ami-job-scout-vercel-jsearch.zip`.
 2. Create a **private** GitHub repository, such as `ami-job-scout`.
 3. Upload the contents of the extracted folder. `package.json`, `vercel.json`, `app`, and `lib` must be at the repository root, not inside an extra nested folder.
 4. Include the dotfiles `.gitignore` and `.env.example`. Never upload real secrets or a populated `.env.local`.
@@ -19,6 +28,9 @@ Create a **Neon Postgres** database through Vercel Marketplace/Storage or neon.c
 
 | Name | Value |
 | --- | --- |
+| `JSEARCH_API_KEY` | Your JSearch API key, stored only in Vercel |
+| `JSEARCH_PROVIDER` | `openwebninja` (default), or `rapidapi` if your key came from RapidAPI |
+| `JSEARCH_COUNTRY` | `ca` for Canada (default) |
 | `DATABASE_URL` | Your Neon Postgres connection string |
 | `CRON_SECRET` | A random secret of at least 16 characters |
 | `RESEND_API_KEY` | A sending API key from your Resend account |
@@ -47,9 +59,13 @@ Vercel sends `CRON_SECRET` in the Authorization header. Unauthenticated requests
 
 - GitHub stores the source; Vercel hosts the app. Neon stores preferences and jobs. Resend sends email. Each service can have its own limits or charges.
 - Existing preferences and jobs from the earlier private ChatGPT Site are not copied into this new database.
-- Remotive’s free feed is delayed by 24 hours. Arbeitnow is Europe-focused. This is not a complete search of LinkedIn or Indeed.
+- JSearch retrieves Google for Jobs/public listings. Publisher coverage varies: it does not include every LinkedIn or Indeed listing. This version replaces the earlier Remotive/Arbeitnow search.
+- Each fresh search requests the first results page per title, up to five titles. Check the provider dashboard for subscription access, quota and charges. No automatic pagination or paid upgrade occurs.
+- The default search country is Canada. Blank location searches Canada; a city or region narrows the provider query. Structured Canadian country data keeps Toronto/Vancouver listings eligible for a Canada filter. Dates and salary filters are applied locally too; missing dates are excluded.
+- Missing keys, rejected credentials and exhausted quotas are displayed as errors, not successful zero-result searches.
 - Unclear salaries follow the “Include undisclosed or unclear pay” option. No currency conversion or inferred work eligibility is performed.
-- Listing data is cached for six hours. Refresh does not bypass the cache.
+- Each search is cached for six hours. Applying different titles, location, date window or remote preference runs the corresponding search. Refresh reuses an unexpired cache. Changing only salary filters reuses the fetched listings. Cache from the old version is automatically ignored.
+- Saved jobs and email settings remain in the existing database. Daily digest uses the same JSearch search and matching logic.
 
 ## Run locally
 
@@ -63,3 +79,5 @@ Use Node 24 and pnpm. Run `pnpm install`, copy `.env.example` to `.env.local`, a
 - Cron authentication: https://vercel.com/docs/cron-jobs/manage-cron-jobs
 - Neon: https://neon.com/docs/serverless/serverless-driver
 - Resend: https://resend.com/docs/api-reference/emails/send-email
+
+- JSearch provider reference: https://www.openwebninja.com/api/jsearch

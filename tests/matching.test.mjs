@@ -11,3 +11,5 @@ test('bare dollar symbol is not assumed to mean USD',()=>assert.equal(salaryInfo
 test('old jobs and ineligible locations excluded',()=>{assert.equal(matches({...job,published:'2026-08-01T01:00:00Z'},defaults,now),false);assert.equal(matches({...job,location:'Germany'},{...defaults,location:'Canada'},now),false)});
 test('worldwide remote roles can match Canada',()=>assert.equal(matches({...job,location:'Worldwide'},{...defaults,location:'Canada'},now),true));
 test('salary range and timezone validation',()=>{assert.throws(()=>validatePreferences({...defaults,minSalary:90000,maxSalary:50000}));assert.throws(()=>validatePreferences({...defaults,timezone:'Invalid/Zone'}));assert.throws(()=>validatePreferences({...defaults,enabled:true,email:''}))});
+
+test('SEO also matches its expanded title',()=>assert.equal(matches({...job,title:'Search Engine Optimization Specialist'}, {...defaults,titles:'SEO'},now),true));
